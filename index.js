@@ -1,5 +1,6 @@
 const sqlite = require('sqlite'),
       Sequelize = require('sequelize'),
+      sequelize = new Sequelize({dialect: 'sqlite', storage: './db/database.db'}),
       request = require('request'),
       express = require('express'),
       app = express();
@@ -16,7 +17,13 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
-  res.status(500).send('Not Implemented');
+	console.log(sequelize.models);
+
+	sequelize.query("SELECT * FROM films").then(films => {
+	  console.log(films);
+	});
+
+  	res.status(500).send("testing");
 }
 
 module.exports = app;
