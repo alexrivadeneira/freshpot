@@ -19,30 +19,14 @@ app.get('/films/:id/recommendations/:limit', getFilmRecommendationsLimit)
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
 
-	// console.log("REQ >>>>", req.params);
-
-	// let film = sequelize.Film.findAll({where: {id: req.params.id}});
-	// console.log(film);
-	// let myquery = "SELECT * FROM films WHERE id = ";
-	// myquery += req.params.id.toString();
-	// let film = sequelize.query(myquery).then(film => { console.log(film)});
-
-	// console.log(sequelize.Films.findAll({where: {id: 7756}}));
-
-// Film.findById(7756).then(project => {
-	// console.log("PROJECT >>>" , project);
-  // project will be an instance of Project and stores the content of the table entry
-  // with id 123. if such an entry is not defined you will get null
-
-
-	let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
-	url += req.params.id;
-	request({
-		url: url,
-		json: true
-	}, function(error, response, body){
-		console.log("REVIEWS: ", body[0]);
-	});
+	// let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
+	// url += req.params.id;
+	// request({
+	// 	url: url,
+	// 	json: true
+	// }, function(error, response, body){
+	// 	console.log("REVIEWS: ", body[0]);
+	// });
 
 	let buildQuery = "SELECT * FROM films WHERE id = ";
 	buildQuery += req.params.id;
@@ -74,12 +58,39 @@ function getFilmRecommendations(req, res) {
 
 		sequelize.query(buildQuery).then(film => {
 			// filter based on number of reviews
+			let filteredRecs = [];
 			let recs = film[0];
 			for(let i = 0; i < recs.length; i++){
-				console.log("ID OF EACH: ", recs[i].id);
+				let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
+				url += recs[i].id;
+				request({
+					url: url,
+					json: true
+				}, function(error, response, body){
+					// only allow through recs with more than 
+					let moreThanFourReviews = false;
+					let reviewAvgRating = 0;
+
+					let reviews = body[0]["reviews"];
+					
+					if(reviews.length > 4){
+						moreThanFourReviews = true;
+						// don't need to get avg rating unless more than 4 reviews, so do that here:
+						for(let j = 0; j < reviews.length; j++){
+							reviewAvgRating += reviews[j].rating;
+						}	
+						reviewAvgRating = reviewAvgRating / reviews.length;
+					}
+
+					if(moreThanFourReviews && reviewAvgRating > 4){
+						console.log("GOT HERE");
+						filteredRecs.push(recs[i]);
+					}
+				});
 			}
-			res.send({"recommendations": film[0]});
-		})
+			console.log("FILTERED RECS======>", filteredRecs);
+			res.send({"recommendations": filteredRecs});
+		});
 	});
 
 
