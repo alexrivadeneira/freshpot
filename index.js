@@ -35,10 +35,17 @@ function getFilmRecommendations(req, res) {
   // with id 123. if such an entry is not defined you will get null
 
 
+	let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
+	url += req.params.id;
+	request({
+		url: url,
+		json: true
+	}, function(error, response, body){
+		console.log("REVIEWS: ", body[0]);
+	});
+
 	let buildQuery = "SELECT * FROM films WHERE id = ";
 	buildQuery += req.params.id;
-
-
 
 	sequelize.query(buildQuery).then(film => {
 
@@ -56,7 +63,7 @@ function getFilmRecommendations(req, res) {
 		let rangeMinDate = rangeMin + restDate;
 		let rangeMaxDate = rangeMax + restDate;
 
-		// build next query based on matching genre and tiem
+		// get films matching genre and time
 		let buildQuery = "SELECT * FROM films WHERE genre_id = ";
 		buildQuery += genre;
 		buildQuery += " AND release_date BETWEEN date('";
@@ -65,16 +72,16 @@ function getFilmRecommendations(req, res) {
 		buildQuery += rangeMaxDate;
 		buildQuery += "')";
 
-		console.log("next Query: ", buildQuery);
-
 		sequelize.query(buildQuery).then(film => {
+			// filter based on number of reviews
+			let recs = film[0];
+			for(let i = 0; i < recs.length; i++){
+				console.log("ID OF EACH: ", recs[i].id);
+			}
 			res.send({"recommendations": film[0]});
 		})
 	});
 
-
-	// sequelize.findAll()
-	// sequelize.query("SELECT * FROM films WHERE id = 1").then(res => console.log(res));
 
   	// res.status(500).send("testing");
 }
