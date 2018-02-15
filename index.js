@@ -68,7 +68,7 @@ function getFilmRecommendations(req, res) {
 		console.log("next Query: ", buildQuery);
 
 		sequelize.query(buildQuery).then(film => {
-			console.log("nextFilm: ", film);
+			res.send({"recommendations": film[0]});
 		})
 	});
 
@@ -76,7 +76,7 @@ function getFilmRecommendations(req, res) {
 	// sequelize.findAll()
 	// sequelize.query("SELECT * FROM films WHERE id = 1").then(res => console.log(res));
 
-  	res.status(500).send("testing");
+  	// res.status(500).send("testing");
 }
 
 function getFilmRecommendationsLimit(req, res){
