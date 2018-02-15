@@ -58,7 +58,6 @@ function getFilmRecommendations(req, res) {
 
 		sequelize.query(buildQuery).then(film => {
 			// filter based on number of reviews
-			let filteredRecs = [];
 			let recs = film[0];
 			for(let i = 0; i < recs.length; i++){
 				let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
@@ -67,34 +66,41 @@ function getFilmRecommendations(req, res) {
 					url: url,
 					json: true
 				}, function(error, response, body){
-					// only allow through recs with more than 
-					let moreThanFourReviews = false;
-					let reviewAvgRating = 0;
+					if(error){
+						res.status(500).send(err);
+					} else {
+						let filteredRecs = [];
 
-					let reviews = body[0]["reviews"];
-					
-					if(reviews.length > 4){
-						moreThanFourReviews = true;
-						// don't need to get avg rating unless more than 4 reviews, so do that here:
-						for(let j = 0; j < reviews.length; j++){
-							reviewAvgRating += reviews[j].rating;
-						}	
-						reviewAvgRating = reviewAvgRating / reviews.length;
-					}
+						// only allow through recs with more than 
+						let moreThanFourReviews = false;
+						let reviewAvgRating = 0;
 
-					if(moreThanFourReviews && reviewAvgRating > 4){
-						console.log("GOT HERE");
-						filteredRecs.push(recs[i]);
-					}
+						let reviews = body[0]["reviews"];
+						
+						if(reviews.length > 4){
+							moreThanFourReviews = true;
+							// don't need to get avg rating unless more than 4 reviews, so do that here:
+							for(let j = 0; j < reviews.length; j++){
+								reviewAvgRating += reviews[j].rating;
+							}	
+							reviewAvgRating = reviewAvgRating / reviews.length;
+						}
+
+						if(moreThanFourReviews && reviewAvgRating > 4){
+							console.log("GOT HERE");
+							filteredRecs.push(recs[i]);
+							console.log(filteredRecs);
+						}
+						res.send("testing2");
+				}
 				});
+
 			}
-			console.log("FILTERED RECS======>", filteredRecs);
-			res.send({"recommendations": filteredRecs});
 		});
 	});
 
 
-  	// res.status(500).send("testing");
+  	res.status(500).send("testing");
 }
 
 function getFilmRecommendationsLimit(req, res){
