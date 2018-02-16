@@ -16,6 +16,9 @@ Promise.resolve()
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
 app.get('/films/:id/recommendations/:limit', getFilmRecommendationsLimit)
+app.get('*', function(req, res) {
+   res.send("Nothing to see here!", 404);
+ });
 
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
@@ -25,6 +28,13 @@ function getFilmRecommendations(req, res) {
 	buildQuery += req.params.id;
 
 	sequelize.query(buildQuery).then(film => {
+
+		if(film.length === 0){
+			res.send("NO FILM FOUND");
+			return;
+		}
+		console.log("FILM: ", film);
+		// console.log("SEARCH FILM: ", film);
 
 		// get genre of requested film
 		let genre = film[0][0].genre_id;
@@ -71,6 +81,7 @@ function getFilmRecommendations(req, res) {
 						function(error, response, body){
 							if(error){
 								console.log(error);
+								res.send("error");
 							} else {
 								let moreThanFourReviews = false;
 								let reviewAvgRating = 0;
@@ -84,7 +95,9 @@ function getFilmRecommendations(req, res) {
 									}	
 									reviewAvgRating = reviewAvgRating / reviews.length;
 								}
+								// console.log(moreThanFourReviews, reviewAvgRating);
 								if(moreThanFourReviews && reviewAvgRating > 4){
+									// console.log("GOT ONE");
 									filteredRecs.push(item);
 								}																	
 							}
@@ -95,7 +108,7 @@ function getFilmRecommendations(req, res) {
 				if(err){
 					console.log(error);
 				} else {
-					res.status(500).send({"recommendations": filteredRecs});
+					res.json({"recommendations": filteredRecs});
 				}
 			}	
 		);
