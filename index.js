@@ -37,55 +37,47 @@ function getFilmRecommendations(req, res) {
 
 	let id = req.params.id;
 
+	// get the initial input film data
 	Film.findById(id).then(function(myFilm){
 		if(myFilm){
 			console.log(myFilm["dataValues"]);
 			return myFilm["dataValues"];
 		} else {
+			throw new Error("not found");
+			// res.status(404).send("not found");
+		}
+	// use the original film's data to get all films by same genre and time
+	}).then(function(film){
+		if(film){
+			// use that film to get proper data
+			// isolate year and rest of the date
+			let year = film.release_date.substring(0, 4);
+			let restDate = film.release_date.substring(4, film.release_date.length);
+			let rangeMax = parseInt(year) + 15;
+			let rangeMin = parseInt(year) - 15;
+			let rangeMinDate = rangeMin + restDate;
+			let rangeMaxDate = rangeMax + restDate;					
+
+			// get films matching genre and time
+			let buildQuery = "SELECT * FROM films WHERE genre_id = ";
+			buildQuery += film.genre_id;
+			buildQuery += " AND release_date BETWEEN date('";
+			buildQuery += rangeMinDate;
+			buildQuery += "') AND date('";
+			buildQuery += rangeMaxDate;
+			buildQuery += "')";
+
+			return buildQuery;
+			
+		} else {
 			res.status(404).send("not found");
 		}
-	}).then(function(film){
-		
-		// return Film.findAll({where: })
 	})
 
 
-	// // console.log("REQ: RES: ", req.params);
-	// let recs = [];
-	// let filteredRecs = [];
 
-	// // build query to first obtain the original film
-	// let buildQuery = "SELECT * FROM films WHERE id = ";
-	// buildQuery += req.params.id;
 
-	// let genre;
-	// let releaseDate;
 
-	// let test = sequelize.query(buildQuery);
-	// // console.log("TEST", test);
-
-	// 	// get genre of requested film
-	// 	let genre = film[0][0].genre_id;
-	// 	// get release date of requestedFilm
-	// 	let releaseDate = film[0][0].release_date;
-
-	// 	// isolate year and rest of the date
-	// 	let year = releaseDate.substring(0, 4);
-	// 	let restDate = releaseDate.substring(4, releaseDate.length);
-		
-	// 	let rangeMax = parseInt(year) + 15;
-	// 	let rangeMin = parseInt(year) - 15;
-	// 	let rangeMinDate = rangeMin + restDate;
-	// 	let rangeMaxDate = rangeMax + restDate;
-
-	// 	// get films matching genre and time
-	// 	let buildQuery = "SELECT * FROM films WHERE genre_id = ";
-	// 	buildQuery += genre;
-	// 	buildQuery += " AND release_date BETWEEN date('";
-	// 	buildQuery += rangeMinDate;
-	// 	buildQuery += "') AND date('";
-	// 	buildQuery += rangeMaxDate;
-	// 	buildQuery += "')";
 
 
 		
