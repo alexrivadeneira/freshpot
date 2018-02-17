@@ -58,21 +58,26 @@ function getFilmRecommendations(req, res) {
 			let rangeMinDate = rangeMin + restDate;
 			let rangeMaxDate = rangeMax + restDate;					
 
-			// get films matching genre and time
-			let buildQuery = "SELECT * FROM films WHERE genre_id = ";
-			buildQuery += film.genre_id;
-			buildQuery += " AND release_date BETWEEN date('";
-			buildQuery += rangeMinDate;
-			buildQuery += "') AND date('";
-			buildQuery += rangeMaxDate;
-			buildQuery += "')";
+			console.log(rangeMinDate);
+			console.log(rangeMaxDate);
 
-			return buildQuery;
-			
+			let startDate = new Date("October 13, 1995 00:00:00");
+			let endDate = new Date("October 13, 1996 12:59:59");
+
+			return Film.findAll({
+				where: {
+					release_date:{
+						$between: [startDate, endDate]
+					}
+				}
+			});
+
 		} else {
 			res.status(404).send("not found");
 		}
-	})
+	}).then(function(filteredFilms){
+		console.log("himom", filteredFilms);
+	});
 
 
 
