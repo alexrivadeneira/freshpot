@@ -30,10 +30,18 @@ Promise.resolve()
 // ROUTES
 app.get('/films/:id([0-9]+)/recommendations', getFilmRecommendations);
 app.get('/films/:id([0-9]+)/recommendations/:limit([0-9]+)', getFilmRecommendationsLimit)
-app.get('*', function(req, res) {
-	console.log("GOT TO MISSING ROUTE");
-   res.status(404).send('"message" key missing');
+app.get('*', function( req, res, next) {
+	const error = new Error('not proper param');
+	error.httpStatusCode = 404;
+	return next(error);
+	
  });
+
+app.use((err, req, res, next) => {
+ console.log("GOT HERE");
+  res.status(err.httpStatusCode).send({"message": 'key missing'});
+});
+
 
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
@@ -132,7 +140,7 @@ function getFilmRecommendations(req, res) {
 						console.log(error)
 					} else {
 						// console.log("GOT HRE");
-						res.json({"recommendations": filteredRecs});
+						res.status(200).json({"recommendations": filteredRecs});
 					}
 				}
 				);
