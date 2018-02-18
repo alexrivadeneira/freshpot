@@ -28,22 +28,26 @@ Promise.resolve()
   .catch((err) => { if (NODE_ENV === 'development') console.error(err.stack); });
 
 // ROUTES
-app.get('/films/:id/recommendations', getFilmRecommendations);
-app.get('/films/:id/recommendations/:limit', getFilmRecommendationsLimit)
+app.get('/films/:id([0-9]+)/recommendations', getFilmRecommendations);
+app.get('/films/:id([0-9]+)/recommendations/:limit([0-9]+)', getFilmRecommendationsLimit)
 app.get('*', function(req, res) {
-   res.status(404).send("no route");
+	console.log("GOT TO MISSING ROUTE");
+   res.status(404).send('"message" key missing');
  });
 
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
+
+
 	let id = req.params.id;
 
 	// get the initial input film data
 	Film.findById(id).then(function(myFilm){
 		if(myFilm){
-			console.log(myFilm["dataValues"]);
+			// console.log(myFilm["dataValues"]);
 			return myFilm["dataValues"];
-		} else {
+		} 
+		else {
 			throw new Error("not found");
 			// res.status(404).send("not found");
 		}
@@ -59,8 +63,8 @@ function getFilmRecommendations(req, res) {
 			let rangeMinDate = rangeMin + restDate;
 			let rangeMaxDate = rangeMax + restDate;					
 
-			console.log(rangeMinDate);
-			console.log(rangeMaxDate);
+			// console.log(rangeMinDate);
+			// console.log(rangeMaxDate);
 
 			// let startDate = new Date("October 13, 2000 11:13:00")
 			// let endDate = new Date("October 13, 2001 11:13:00")
@@ -77,9 +81,11 @@ function getFilmRecommendations(req, res) {
 				}
 			});
 
-		} else {
-			res.status(404).send("not found");
-		}
+		} 
+		// else {
+		// 	throw new Error('other thing not found');
+		// 	// res.status(404).send("not found");
+		// }
 	}).then(function(films){
 		if(films){
 		let filteredRecs = [];
@@ -96,7 +102,7 @@ function getFilmRecommendations(req, res) {
 						json: true
 					}, function(error, response, body){
 							if(error){
-								console.log(error);
+								throw new Error("No matching reviews found");
 							} else {
 								let moreThanFourReviews = false;
 								let reviewAvgRating = 0;
@@ -112,7 +118,7 @@ function getFilmRecommendations(req, res) {
 								}
 								// console.log(moreThanFourReviews, reviewAvgRating);
 								if(moreThanFourReviews && reviewAvgRating > 4){
-									console.log("GOT ONE")
+									// console.log("GOT ONE")
 									filteredRecs.push(film["dataValues"]);
 								}																	
 							}
@@ -125,77 +131,20 @@ function getFilmRecommendations(req, res) {
 					if(error){ 
 						console.log(error)
 					} else {
-						console.log("GOT HRE");
+						// console.log("GOT HRE");
 						res.json({"recommendations": filteredRecs});
 					}
 				}
 				);
-		} else {
-			console.log("error");
-		}
+		} 
+		// else {
+		// 	throw new Error('other thing not found');
+		// }
+
+	}).catch(function(error){
+		console.log(error);
 	});
 
-
-
-
-
-
-
-		
-
-// // ----> START
-// 		// console.log("RECS LEN", recs.length);
-
-// 		// console.log("RECS", recs);
-// 		async.each(recs[0],
-// 				function(item, callback){
-
-// 					// console.log("ITEM", item);
-
-// 					let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
-// 					url += item.id;	
-					
-// 					// console.log("try item: ", item.id);
-
-// 					request({
-// 						url: url,
-// 						json: true,
-// 						}, 
-// 							function(error, response, body){
-// 								if(error){
-// 									console.log(error);
-// 									res.send("error");
-// 								} else {
-// 									let moreThanFourReviews = false;
-// 									let reviewAvgRating = 0;
-
-// 									let reviews = body[0]["reviews"];
-// 									if(reviews.length > 4){
-// 										moreThanFourReviews = true;
-// 										// don't need to get avg rating unless more than 4 reviews, so do that here:
-// 										for(let j = 0; j < reviews.length; j++){
-// 											reviewAvgRating += reviews[j].rating;
-// 										}	
-// 										reviewAvgRating = reviewAvgRating / reviews.length;
-// 									}
-// 									// console.log(moreThanFourReviews, reviewAvgRating);
-// 									if(moreThanFourReviews && reviewAvgRating > 4){
-// 										// console.log("GOT ONE");
-// 										filteredRecs.push(item);
-// 									}																	
-// 								}
-// 								callback();
-// 							}
-// 					);			
-// 				}, function(err){
-// 					if(err){
-// 						console.log(error);
-// 					} else {
-// 						res.json({"recommendations": filteredRecs});
-// 					}
-// 				}	
-// 			);
-// // ----> END	
 
 
 
@@ -203,10 +152,7 @@ function getFilmRecommendations(req, res) {
 
 
 function getFilmRecommendationsLimit(req, res){
-	console.log("REQ >>>>", req.params);	
-	if(isNaN(req.params)){
-   		res.status(404).send("key missing");
-	}
+	return {"recommendations:": []};
 }
 
 
