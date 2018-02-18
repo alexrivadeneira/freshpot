@@ -10,15 +10,30 @@ const Film = sequelize.define('film', {
   id: {type: Sequelize.INTEGER, primaryKey: true},
   title: Sequelize.STRING,
   release_date: Sequelize.STRING,
-  tagline: Sequelize.STRING,
-  revenue: Sequelize.INTEGER,
-  budget: Sequelize.INTEGER,
-  runtime: Sequelize.INTEGER,
-  status: Sequelize.STRING,
   genre_id: Sequelize.INTEGER,
 }, { timestamps: false});
 
-
+const genresLookup = {
+	1:"Action",
+2:"Adventure",
+3:"Animation",
+4:"Comedy",
+5:"Crime",
+6:"Documentary",
+7:"Drama",
+8:"Family",
+9:"Fantasy",
+10:"History",
+11:"Horror",
+12:"Music",
+13:"Mystery",
+14:"Romance",
+15:"Science Fiction",
+16:"TV Movie",
+17:"Thriller",
+18:"War",
+19:"Western",
+};
 
 const { PORT=3000, NODE_ENV='development', DB_PATH='./db/database.db' } = process.env;
 
@@ -115,20 +130,39 @@ function getFilmRecommendations(req, res) {
 								let moreThanFourReviews = false;
 								let reviewAvgRating = 0;
 
-								let reviews = body[0]["reviews"];
+								var reviews = body[0]["reviews"];
 								if(reviews.length > 4){
 									moreThanFourReviews = true;
 									// don't need to get avg rating unless more than 4 reviews, so do that here:
 									for(let j = 0; j < reviews.length; j++){
 										reviewAvgRating += reviews[j].rating;
 									}	
-									reviewAvgRating = reviewAvgRating / reviews.length;
+									reviewAvgRating = +((reviewAvgRating / reviews.length).toFixed(2));
 								}
+
 								// console.log(moreThanFourReviews, reviewAvgRating);
 								if(moreThanFourReviews && reviewAvgRating > 4){
-									// console.log("GOT ONE")
-									filteredRecs.push(film["dataValues"]);
-								}																	
+									console.log(body[0]["reviews"].length, reviewAvgRating);
+									let dataId = film["dataValues"].id;
+									let title = film["dataValues"].title;
+									let releaseDate = film["dataValues"].release_date;
+									let genreId = genresLookup[film["dataValues"].genre_id];
+									let averageRating = reviewAvgRating;
+									let reviews = body[0]["reviews"].length;
+
+									console.log("GOT HERE");
+									filteredRecs.push({
+						              id: dataId,
+						              title: title,
+						              releaseDate: releaseDate,
+						              genre: genreId,
+						              averageRating: averageRating,
+						              reviews: reviews,										
+									});
+
+
+								}
+
 							}
 							callback();
 						}
@@ -140,7 +174,7 @@ function getFilmRecommendations(req, res) {
 						console.log(error)
 					} else {
 						// console.log("GOT HRE");
-						res.status(200).json({"recommendations": filteredRecs});
+						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": 10, "offset": 0 }});
 					}
 				}
 				);
