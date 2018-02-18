@@ -52,7 +52,6 @@ app.get('*', function( req, res, next) {
  });
 
 app.use((err, req, res, next) => {
- console.log("GOT HERE");
   res.status(err.httpStatusCode).send({"message": 'key missing'});
 });
 
@@ -74,25 +73,21 @@ function getFilmRecommendations(req, res, next) {
 	}
 
 	let id = req.params.id;
-	console.log(id);
 
 	if(isNaN(parseInt(id))){
 		const error = new Error('not proper param');
-		console.log("ID NO GOOD!!");
 		error.httpStatusCode = 422;
 		return next(error);		
 	}
 
 	// get the initial input film data
 	Film.findById(id).then(function(myFilm){
-		console.log("myfilm", myFilm);
 		if(myFilm){
 			// console.log(myFilm["dataValues"]);
 			return myFilm["dataValues"];
 		} 
 		else {
 			const error = new Error('not proper param');
-			console.log("ID NO GOOD!!");
 			error.httpStatusCode = 422;
 			return next(error);
 		}
@@ -141,6 +136,8 @@ function getFilmRecommendations(req, res, next) {
 
 					let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
 					url += film["dataValues"].id;		
+
+					console.log(url);
 
 					request({
 						url:  url,
