@@ -176,10 +176,8 @@ function getFilmRecommendations(req, res, next) {
 						              releaseDate: releaseDate,
 						              genre: genreId,
 						              averageRating: averageRating,
-						              reviews: reviews,										
+						              reviews: reviews,									
 									});
-
-
 								}
 
 							}
@@ -187,10 +185,9 @@ function getFilmRecommendations(req, res, next) {
 						}
 					);
 
-
 				}, function(error){
 					if(error){ 
-						console.log(error)
+						console.log(error);
 					} else {
 						// console.log("GOT HRE");
 						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": limit, "offset": offset }});
