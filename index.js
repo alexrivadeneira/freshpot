@@ -43,8 +43,7 @@ Promise.resolve()
   .catch((err) => { if (NODE_ENV === 'development') console.error(err.stack); });
 
 // ROUTES
-app.get('/films/:id([0-9]+)/recommendations', getFilmRecommendations);
-app.get('/films/:id([0-9]+)/recommendations/:limit([0-9]+)', getFilmRecommendationsLimit)
+app.get('/films/:id/recommendations', getFilmRecommendations);
 app.get('*', function( req, res, next) {
 	const error = new Error('not proper param');
 	error.httpStatusCode = 404;
@@ -59,20 +58,43 @@ app.use((err, req, res, next) => {
 
 
 // ROUTE HANDLER
-function getFilmRecommendations(req, res) {
+function getFilmRecommendations(req, res, next) {
+	var limit = req.url.split("?limit=")[1];
+	if(isNaN(parseInt(limit))){
+		limit = 10;
+	} else {
+		limit = parseInt(limit);
+	}
 
+	var offset = req.url.split("?offset=")[1];
+	if(isNaN(parseInt(offset))){
+		offset = 0;
+	} else {
+		offset = parseInt(offset);
+	}
 
 	let id = req.params.id;
+	console.log(id);
+
+	if(isNaN(parseInt(id))){
+		const error = new Error('not proper param');
+		console.log("ID NO GOOD!!");
+		error.httpStatusCode = 422;
+		return next(error);		
+	}
 
 	// get the initial input film data
 	Film.findById(id).then(function(myFilm){
+		console.log("myfilm", myFilm);
 		if(myFilm){
 			// console.log(myFilm["dataValues"]);
 			return myFilm["dataValues"];
 		} 
 		else {
-			throw new Error("not found");
-			// res.status(404).send("not found");
+			const error = new Error('not proper param');
+			console.log("ID NO GOOD!!");
+			error.httpStatusCode = 422;
+			return next(error);
 		}
 	// use the original film's data to get all films by same genre and time
 	}).then(function(film){
@@ -150,7 +172,7 @@ function getFilmRecommendations(req, res) {
 									let averageRating = reviewAvgRating;
 									let reviews = body[0]["reviews"].length;
 
-									console.log("GOT HERE");
+									// console.log("GOT HERE");
 									filteredRecs.push({
 						              id: dataId,
 						              title: title,
@@ -174,7 +196,7 @@ function getFilmRecommendations(req, res) {
 						console.log(error)
 					} else {
 						// console.log("GOT HRE");
-						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": 10, "offset": 0 }});
+						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": limit, "offset": offset }});
 					}
 				}
 				);
@@ -192,10 +214,6 @@ function getFilmRecommendations(req, res) {
 
 };
 
-
-function getFilmRecommendationsLimit(req, res){
-	return {"recommendations:": []};
-}
 
 
 module.exports = app;
