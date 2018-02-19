@@ -71,7 +71,7 @@ function getFilmRecommendations(req, res, next) {
 	} else {
 		offset = parseInt(offset);
 	}
-
+	console.log("YOUR OFFSET: ", offset);
 	let id = req.params.id;
 
 	if(isNaN(parseInt(id))){
@@ -126,7 +126,7 @@ function getFilmRecommendations(req, res, next) {
 					let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
 					url += film["dataValues"].id;		
 
-					console.log("new request", url);
+					// console.log("new request", url);
 					request({
 						url:  url,
 						json: true
@@ -175,6 +175,23 @@ function getFilmRecommendations(req, res, next) {
 					if(error){ 
 						console.log(error);
 					} else {
+
+					filteredRecs.sort(function(a, b){
+					    var keyA = a.id,
+					        keyB = b.id;
+					    // Compare the 2 dates
+					    if(keyA < keyB) return -1;
+					    if(keyA > keyB) return 1;
+					    return 0;
+					});				
+
+						if(filteredRecs.length > limit){
+							filteredRecs.length = limit;
+						}
+						if(offset > 0){
+							console.log("OFFSET triggered");
+							filteredRecs.shift(offset);
+						}
 						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": limit, "offset": offset }});
 					}
 				}
