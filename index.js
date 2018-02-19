@@ -115,14 +115,7 @@ function getFilmRecommendations(req, res, next) {
 					}
 				}
 			});
-
 		} 
-		// else {
-		// 	throw new Error('other thing not found');
-		// 	// res.status(404).send("not found");
-		// }
-
-	// then iterate through each of the returned films, and make a new list of films that meet criteria for sufficient number of reviews and average rating
 	}).then(function(films){
 		if(films){
 		let filteredRecs = [];
@@ -130,14 +123,10 @@ function getFilmRecommendations(req, res, next) {
 			async.each(films,
 				function(film, callback){
 
-					// mocking out the call
-					// save the response, 
 					let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
 					url += film["dataValues"].id;		
 
-					// something
-					// why does taking the comment out here cause an issue? -__-
-
+					console.log("new request", url);
 					request({
 						url:  url,
 						json: true
@@ -156,11 +145,10 @@ function getFilmRecommendations(req, res, next) {
 										reviewAvgRating += reviews[j].rating;
 									}	
 									reviewAvgRating = +((reviewAvgRating / reviews.length).toFixed(2));
-								}
+								} 
 
-								// console.log(moreThanFourReviews, reviewAvgRating);
+								// if meeting criteria, then pass through
 								if(moreThanFourReviews && reviewAvgRating > 4){
-									console.log(body[0]["reviews"].length, reviewAvgRating);
 									let dataId = film["dataValues"].id;
 									let title = film["dataValues"].title;
 									let releaseDate = film["dataValues"].release_date;
@@ -168,7 +156,6 @@ function getFilmRecommendations(req, res, next) {
 									let averageRating = reviewAvgRating;
 									let reviews = body[0]["reviews"].length;
 
-									// console.log("GOT HERE");
 									filteredRecs.push({
 						              id: dataId,
 						              title: title,
@@ -188,15 +175,11 @@ function getFilmRecommendations(req, res, next) {
 					if(error){ 
 						console.log(error);
 					} else {
-						// console.log("GOT HRE");
 						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": limit, "offset": offset }});
 					}
 				}
 				);
 		} 
-		// else {
-		// 	throw new Error('other thing not found');
-		// }
 
 	}).catch(function(error){
 		console.log(error);
