@@ -87,7 +87,7 @@ function getFilmRecommendations(req, res, next) {
 			return myFilm["dataValues"];
 		} 
 		else {
-			const error = new Error('not proper param');
+			const error = new Error('Film id not found');
 			error.httpStatusCode = 422;
 			return next(error);
 		}
@@ -103,15 +103,10 @@ function getFilmRecommendations(req, res, next) {
 			let rangeMinDate = rangeMin + restDate;
 			let rangeMaxDate = rangeMax + restDate;					
 
-			// console.log(rangeMinDate);
-			// console.log(rangeMaxDate);
-
-			// let startDate = new Date("October 13, 2000 11:13:00")
-			// let endDate = new Date("October 13, 2001 11:13:00")
-
 			let startDate = new Date(rangeMinDate + ' 00:00:00');
 			let endDate = new Date(rangeMaxDate + ' 12:59:59');
 
+			// query for all films matching input film's genre and date range
 			return Film.findAll({
 				where: {
 					genre_id: film.genre_id,
@@ -126,19 +121,17 @@ function getFilmRecommendations(req, res, next) {
 		// 	throw new Error('other thing not found');
 		// 	// res.status(404).send("not found");
 		// }
+
+	// then iterate through each of the returned films, and make a new list of films that meet criteria for sufficient number of reviews and average rating
 	}).then(function(films){
-		if(films){
 		let filteredRecs = [];
 
 			async.each(films,
 				function(film, callback){
-
-
 					let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
 					url += film["dataValues"].id;		
 
-					console.log(url);
-
+					// request to third party api
 					request({
 						url:  url,
 						json: true
@@ -159,7 +152,6 @@ function getFilmRecommendations(req, res, next) {
 									reviewAvgRating = +((reviewAvgRating / reviews.length).toFixed(2));
 								}
 
-								// console.log(moreThanFourReviews, reviewAvgRating);
 								if(moreThanFourReviews && reviewAvgRating > 4){
 									console.log(body[0]["reviews"].length, reviewAvgRating);
 									let dataId = film["dataValues"].id;
@@ -169,7 +161,6 @@ function getFilmRecommendations(req, res, next) {
 									let averageRating = reviewAvgRating;
 									let reviews = body[0]["reviews"].length;
 
-									// console.log("GOT HERE");
 									filteredRecs.push({
 						              id: dataId,
 						              title: title,
@@ -189,25 +180,17 @@ function getFilmRecommendations(req, res, next) {
 					if(error){ 
 						console.log(error);
 					} else {
-						// console.log("GOT HRE");
+						// return the filtered reviews
 						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": limit, "offset": offset }});
 					}
 				}
 				);
-		} 
-		// else {
-		// 	throw new Error('other thing not found');
-		// }
-
+	
 	}).catch(function(error){
 		console.log(error);
 	});
 
-
-
-
 };
-
 
 
 module.exports = app;
