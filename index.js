@@ -126,7 +126,6 @@ function getFilmRecommendations(req, res, next) {
 					let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
 					url += film["dataValues"].id;		
 
-					// console.log("new request", url);
 					request({
 						url:  url,
 						json: true
