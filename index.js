@@ -124,14 +124,20 @@ function getFilmRecommendations(req, res, next) {
 
 	// then iterate through each of the returned films, and make a new list of films that meet criteria for sufficient number of reviews and average rating
 	}).then(function(films){
+		if(films){
 		let filteredRecs = [];
 
 			async.each(films,
 				function(film, callback){
+
+					// mocking out the call
+					// save the response, 
 					let url = "http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=";
 					url += film["dataValues"].id;		
 
-					// request to third party api
+					// something
+					// why does taking the comment out here cause an issue? -__-
+
 					request({
 						url:  url,
 						json: true
@@ -152,6 +158,7 @@ function getFilmRecommendations(req, res, next) {
 									reviewAvgRating = +((reviewAvgRating / reviews.length).toFixed(2));
 								}
 
+								// console.log(moreThanFourReviews, reviewAvgRating);
 								if(moreThanFourReviews && reviewAvgRating > 4){
 									console.log(body[0]["reviews"].length, reviewAvgRating);
 									let dataId = film["dataValues"].id;
@@ -161,6 +168,7 @@ function getFilmRecommendations(req, res, next) {
 									let averageRating = reviewAvgRating;
 									let reviews = body[0]["reviews"].length;
 
+									// console.log("GOT HERE");
 									filteredRecs.push({
 						              id: dataId,
 						              title: title,
@@ -180,17 +188,25 @@ function getFilmRecommendations(req, res, next) {
 					if(error){ 
 						console.log(error);
 					} else {
-						// return the filtered reviews
+						// console.log("GOT HRE");
 						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": limit, "offset": offset }});
 					}
 				}
 				);
-	
+		} 
+		// else {
+		// 	throw new Error('other thing not found');
+		// }
+
 	}).catch(function(error){
 		console.log(error);
 	});
 
+
+
+
 };
+
 
 
 module.exports = app;
