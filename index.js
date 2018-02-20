@@ -71,7 +71,6 @@ function getFilmRecommendations(req, res, next) {
 	} else {
 		offset = parseInt(offset);
 	}
-	console.log("YOUR OFFSET: ", offset);
 	let id = req.params.id;
 
 	if(isNaN(parseInt(id))){
@@ -83,7 +82,6 @@ function getFilmRecommendations(req, res, next) {
 	// get the initial input film data
 	Film.findById(id).then(function(myFilm){
 		if(myFilm){
-			// console.log(myFilm["dataValues"]);
 			return myFilm["dataValues"];
 		} 
 		else {
@@ -178,7 +176,7 @@ function getFilmRecommendations(req, res, next) {
 					filteredRecs.sort(function(a, b){
 					    var keyA = a.id,
 					        keyB = b.id;
-					    // Compare the 2 dates
+					    // Compare the ids
 					    if(keyA < keyB) return -1;
 					    if(keyA > keyB) return 1;
 					    return 0;
@@ -188,7 +186,6 @@ function getFilmRecommendations(req, res, next) {
 							filteredRecs.length = limit;
 						}
 						if(offset > 0){
-							console.log("OFFSET triggered");
 							filteredRecs.shift(offset);
 						}
 						res.status(200).json({"recommendations": filteredRecs, "meta": { "limit": limit, "offset": offset }});
@@ -200,9 +197,6 @@ function getFilmRecommendations(req, res, next) {
 	}).catch(function(error){
 		console.log(error);
 	});
-
-
-
 
 };
 
